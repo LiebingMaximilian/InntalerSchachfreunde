@@ -1,0 +1,20 @@
+﻿@using BlazoriseTest.Components.Layout
+
+@inherits LayoutComponentBase
+
+
+@if ( layoutType == "fixed-header" )
+{
+    <Layout Sider>
+        <LayoutSider>
+            <LayoutSiderContent>
+                <SideMenu />
+            </LayoutSiderContent>
+        </LayoutSider>
+        <Layout>
+            <LayoutContent Padding="Padding.Is4.OnX.Is4.FromTop">
+                @Body
+            </LayoutContent>
+        </Layout>
+    </Layout>
+}

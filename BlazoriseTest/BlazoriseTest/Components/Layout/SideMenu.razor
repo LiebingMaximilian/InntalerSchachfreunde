@@ -1,0 +1,57 @@
+﻿<Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Tablet" ThemeContrast="ThemeContrast.Dark"
+     Mode="BarMode.VerticalInline" CollapseMode="BarCollapseMode.Small">
+    <BarToggler />
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="customIcon" />
+                
+                Inntaler Schachfreunde
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="/">
+                    <BarIcon IconName="IconName.Home" />
+                    Home
+                </BarLink>
+                <BarLink To="/termine">
+                    <BarIcon IconName="IconName.Calendar" />
+                    Termine
+                </BarLink>
+                <BarLink To="/anfahrt">
+                    <BarIcon IconName="IconName.Map" />
+                    Anfahrt
+                </BarLink>
+                <BarLink To="/impressum">
+                    <BarIcon IconName="IconName.Copyright" />
+                    Impressum
+                </BarLink>
+                <BarLink To="/presse">
+                    <BarIcon IconName="IconName.PaperPlane" />
+                    Pressemitteilungen
+                </BarLink>
+                <BarLink To="/vm">
+                    <BarIcon IconName="IconName.Grin" />
+                    Vereinsmeisterschaft
+                </BarLink>
+                <BarLink To="/vm">
+                    <BarIcon IconName="IconName.HandPaper" />
+                    Vereinsmeisterschaft
+                </BarLink>
+                <BarLink To="/kreisliga">
+                    <BarIcon IconName="IconName.HandPaper" />
+                    Kreisliga
+                </BarLink>
+            </BarItem>
+        </BarStart>
+       
+    </BarMenu>
+</Bar>
+@code {
+    private bool pagesBarVisible = true;
+
+    RenderFragment customIcon =@<img src="/brand-logo.png" style="width:32px; height: 32px" />;
+}
