@@ -3,7 +3,7 @@ using Blazorise.Localization;
 
 using Microsoft.AspNetCore.Components;
 
-namespace BlazoriseTest.Layouts
+namespace InntalerSchachfreunde.Layouts
 {
     public partial class MainLayout
     {

@@ -1,4 +1,4 @@
-﻿namespace BlazoriseTest.Components.TodoApp
+﻿namespace InntalerSchachfreunde.Components.TodoApp
 {
     public class Todo
     {

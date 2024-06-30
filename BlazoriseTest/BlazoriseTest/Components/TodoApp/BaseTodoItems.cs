@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace BlazoriseTest.Components.TodoApp
+namespace InntalerSchachfreunde.Components.TodoApp
 {
     public abstract class BaseTodoItems : ComponentBase
     {
