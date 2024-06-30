@@ -1,0 +1,65 @@
+﻿@page "/articles"
+@using InntalerSchachfreunde.Entities
+@inject AppDbContext DbContext
+
+    @foreach (Article article in articles)
+    {        
+            <Div Margin="Margin.IsAuto.OnX" Flex="Flex.JustifyContent.Center.AlignItems.Center" >
+                <Div Width="Width.Is75">
+                    <Card>
+                        <CardBody>
+                            <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+                                @article.Headline
+                            </Heading>
+                            <Paragraph>
+                                @article.Text
+                            </Paragraph>               
+
+                            <Figure>
+                                @if(article.Images is object)
+                                {
+                                    @foreach(var image in article.Images)
+                                    {                
+                                        <FigureImage Source= "@System.Convert.ToBase64String(image.ImageBytes)" Border="Border.Rounded" />
+                                        <FigureCaption>
+                                           @image.Description
+                                        </FigureCaption>
+                                    }
+                                }
+                            </Figure>
+                            <Div Flex="Flex._" Gap="Gap.Is3" Padding="Padding.Is4.FromTop">
+                                <Anchor Class="unstyled-anchor" To="#" Padding="Padding.Is2.OnY.Is3.OnX" Border="Border.RoundedPill" TextSize="TextSize.Small" Background="Background.Light">
+                                    @article.ReleaseDate.ToString("dd.MM.yyyy")
+                                </Anchor>
+                            </Div>
+                        </CardBody>
+                    </Card>
+                </Div>
+            </Div>
+        
+        <style>
+            .unstyled-anchor {
+                text-decoration: none;
+                color: inherit;
+            }
+        </style>
+    }
+
+
+@code {
+    private List<Article> articles { get; set; }
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            articles = DbContext.Articles.OrderByDescending(e => e.ReleaseDate).Take(5).ToList();
+        }
+        catch
+        {
+            Console.WriteLine("Error fetching Db");
+            articles = new List<Article> { new Article() {Headline = "An unexpected Error occured. Please try again later" } };
+        }
+
+    }
+}
