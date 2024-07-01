@@ -1,7 +1,11 @@
 ﻿@page "/"
 @inject IVersionProvider VersionProvider
-<Heading Size="HeadingSize.Is1" Margin="Margin.Is3.FromBottom">Willkommen bei den Inntaler Schachfreunden!</Heading>
+@using InntalerSchachfreunde.Entities
+@inject AppDbContext DbContext
 
+<Paragraph>
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" >Willkommen bei den Inntaler Schachfreunden!</Heading>
+</Paragraph>
 <Paragraph>
     Gespielt wird jeden Freitag um 19:00. Neue Spieler:innen sind herzlich Willkommen!<br /> <br />
     <Anchor Class="unstyled-anchor" To="/anfahrt" Padding="Padding.Is2.OnY.Is3.OnX" Border="Border.RoundedPill" TextSize="TextSize.Small" Background="Background.Light">
@@ -15,3 +19,98 @@
         Diese Website befindet sich noch in der Entwicklung! Inhalte sind möglicherweise nicht korrekt.
     </Paragraph>
 </Alert>
+<Paragraph>
+    Neuigkeiten:
+</Paragraph>
+<Row Gap="Gap.Is3">
+@foreach (var article in articles)
+{
+        <Column ColumnSize="ColumnSize.Is2.OnWidescreen.Is2.OnDesktop.Is1.OnTablet">
+            <Card>
+                @if (article.Images is not null)
+                {
+                    <CardImage Source="@ConvertBlobToBase64(article.Images.First())" />
+                }
+                <CardBody>
+                    <CardTitle Size="5">
+                        @article.Headline
+                    </CardTitle>
+                    <Div Flex="Flex.JustifyContent.Between">
+                        <Text>
+                            <Icon Name="IconName.CalendarDay" />
+                            <Small>@article.ReleaseDate.ToString("dd.MM.yyyy")</Small>
+                        </Text>
+                    </Div>
+                    <Paragraph Margin="Margin.Is3.FromTop">
+
+                        @GetFirstPartOfText(article.Text)
+                    </Paragraph>
+                    <Anchor To="/articles">
+                        Read More
+                    </Anchor>
+                </CardBody>
+            </Card>
+        </Column>
+
+}   
+</Row>
+@code {
+    private List<Article> articles { get; set; }
+    private Dictionary<int, List<Entities.Image>> images { get; set; } = new Dictionary<int, List<Entities.Image>>();
+    private readonly int textlength = 100;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            articles = DbContext.Articles.OrderByDescending(e => e.ReleaseDate).Take(3).ToList();
+
+            foreach (var article in articles)
+            {
+                var aimages = DbContext.Images.Where(i => i.ArticleId == article.Id);
+                if (aimages is not null && aimages.Count() > 0)
+                {
+                    images.Add(article.Id, aimages.ToList());
+                }
+
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Error fetching Db");
+            articles = new List<Article> { new Article() { Headline = "An unexpected Error occured. Please try again later" } };
+        }
+
+    }
+    public string ConvertBlobToBase64(Entities.Image image)
+    {
+        if (image.Name is not null && image.Name.EndsWith("jpeg"))
+        {
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        if (image.Name is not null && image.Name.EndsWith("jpg"))
+        {
+            return $"data:image/jpg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        if (image.Name is not null && image.Name.EndsWith("png"))
+        {
+            return $"data:image/png;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        else
+        {
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+    }
+    public string GetFirstPartOfText(string text)
+    {
+        if(text.Length > textlength)
+        {
+            return text.Substring(0, 100) + "...";
+        }
+        else
+        {
+            return text;
+        }
+    }
+
+}

@@ -15,6 +15,7 @@ namespace InntalerSchachfreunde
         public DbSet<Termin> Termins { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<PlayerTournament> PlayerTournament { get; set; }
+        public DbSet<Entities.Image> Images{ get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,11 +37,6 @@ namespace InntalerSchachfreunde
                 .HasOne(p => p.Tournament)
                 .WithMany(b => b.Games)
                 .HasForeignKey(p => p.TournamentId);
-            //link players to tournament
-            modelBuilder.Entity<Article>()
-                .HasMany(p => p.Images)
-                .WithOne(p => p.Article)
-                .HasForeignKey(p => p.ArticleId);
 
             //link game to players
             modelBuilder.Entity<Game>()

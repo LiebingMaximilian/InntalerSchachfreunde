@@ -1,55 +1,40 @@
 ﻿@page "/termine"
 @using System.Globalization
+@using Entities
 @inject IJSRuntime JS
+@inject AppDbContext DbContext
 
-<PageTitle>Upcoming Dates</PageTitle>
-
-<Table Striped>
-    <TableHeader>
-        <TableRow>
-            <TableHeaderCell>#</TableHeaderCell>
-            <TableHeaderCell>First Name</TableHeaderCell>
-            <TableHeaderCell>Last Name</TableHeaderCell>
-            <TableHeaderCell>Username</TableHeaderCell>
-        </TableRow>
-    </TableHeader>
-    <TableBody>
-        <TableRow>
-            <TableRowHeader>1</TableRowHeader>
-            <TableRowCell>Mark</TableRowCell>
-            <TableRowCell>Otto</TableRowCell>
-            <TableRowCell>@@mdo</TableRowCell>
-        </TableRow>
-        <TableRow>
-            <TableRowHeader>2</TableRowHeader>
-            <TableRowCell>Jacob</TableRowCell>
-            <TableRowCell>Thornton</TableRowCell>
-            <TableRowCell>@@fat</TableRowCell>
-        </TableRow>
-        <TableRow>
-            <TableRowHeader>3</TableRowHeader>
-            <TableRowCell>Larry</TableRowCell>
-            <TableRowCell>the Bird</TableRowCell>
-            <TableRowCell>@@twitter</TableRowCell>
-        </TableRow>
-    </TableBody>
-</Table>
+<PageTitle>Termine:</PageTitle>
+<Div Width="Width.Is100.OnDesktop.Is100.OnMobile">
+    <Table Striped Narrow="true" Responsive="true">
+        <TableHeader>
+            <TableRow>
+                <TableHeaderCell>Veranstaltung</TableHeaderCell>
+                <TableHeaderCell>Datum</TableHeaderCell>
+                <TableHeaderCell >Anmerkung</TableHeaderCell>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            @foreach (var termin in TerminList)
+            {
+                <TableRow>
+                    <TableRowCell>@termin.Name</TableRowCell>
+                <TableRowCell>@termin.DateTime.ToString("dd.MM.yyyy HH:mm")</TableRowCell>
+                <TableRowCell>@termin.Annotation</TableRowCell>
+            </TableRow>
+            }      
+        </TableBody>
+    </Table>
+</Div>
 
 @code {
-    private List<DateTime> UpcomingDates { get; set; }
+    private List<Termin>? TerminList { get; set; }
 
     protected override void OnInitialized()
     {
-        UpcomingDates = GetUpcomingDates();
-    }
-
-    private List<DateTime> GetUpcomingDates()
-    {
-        var dates = new List<DateTime>();
-        for (int i = 1; i <= 10; i++)
-        {
-            dates.Add(DateTime.Now.AddDays(i));
-        }
-        return dates;
+        TerminList = DbContext.Termins.Where(t => t.DateTime > DateTime.Now)
+        .OrderBy(t => t.DateTime)
+        .AsParallel()
+        .ToList();
     }
 }

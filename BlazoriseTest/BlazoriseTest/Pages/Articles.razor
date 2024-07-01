@@ -4,30 +4,30 @@
 
     @foreach (Article article in articles)
     {        
-            <Div Margin="Margin.IsAuto.OnX" Flex="Flex.JustifyContent.Center.AlignItems.Center" >
-                <Div Width="Width.Is75">
+            <Div Margin="Margin.IsAuto.OnX.Is3.OnY" Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
+                <Div Width="Width.Is75.OnDesktop.Is100.OnMobile">
                     <Card>
                         <CardBody>
-                            <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
-                                @article.Headline
-                            </Heading>
-                            <Paragraph>
-                                @article.Text
-                            </Paragraph>               
-
-                            <Figure>
-                                @if(article.Images is object)
-                                {
-                                    @foreach(var image in article.Images)
-                                    {                
-                                        <FigureImage Source= "@System.Convert.ToBase64String(image.ImageBytes)" Border="Border.Rounded" />
-                                        <FigureCaption>
-                                           @image.Description
-                                        </FigureCaption>
+                                <Heading Size="HeadingSize.Is2" TextWeight="TextWeight.Bold">
+                                    @article.Headline
+                                </Heading>
+                    
+                                <Figure Width="Width.Is75.OnDesktop.Is100.OnMobile">
+                                    @if(article.Images is object)
+                                    {
+                                        @foreach(var image in article.Images)
+                                        {
+                                    <FigureImage Source="@ConvertBlobToBase64(image)" Border="Border.Rounded" Margin="Margin.Is0"/>
+                                            <FigureCaption>
+                                               @image.Description
+                                            </FigureCaption>
+                                        }
                                     }
-                                }
-                            </Figure>
-                            <Div Flex="Flex._" Gap="Gap.Is3" Padding="Padding.Is4.FromTop">
+                                </Figure>
+                    <Paragraph>
+                                @article.Text
+                            </Paragraph>
+                    <Div Flex="Flex._" Gap="Gap.Is4" Padding="Padding.Is4.FromTop">
                                 <Anchor Class="unstyled-anchor" To="#" Padding="Padding.Is2.OnY.Is3.OnX" Border="Border.RoundedPill" TextSize="TextSize.Small" Background="Background.Light">
                                     @article.ReleaseDate.ToString("dd.MM.yyyy")
                                 </Anchor>
@@ -48,12 +48,23 @@
 
 @code {
     private List<Article> articles { get; set; }
+    private Dictionary<int, List<Entities.Image>> images { get; set; } = new Dictionary<int, List<Entities.Image>>();
 
     protected override void OnInitialized()
     {
         try
         {
             articles = DbContext.Articles.OrderByDescending(e => e.ReleaseDate).Take(5).ToList();
+
+            foreach (var article in articles)
+            {
+                var aimages = DbContext.Images.Where(i => i.ArticleId == article.Id);
+                if (aimages is not null && aimages.Count() > 0)
+                {
+                    images.Add(article.Id, aimages.ToList());
+                }
+
+            }
         }
         catch
         {
@@ -62,4 +73,24 @@
         }
 
     }
+    public string ConvertBlobToBase64(Entities.Image image)
+    {
+        if(image.Name is not null && image.Name.EndsWith("jpeg"))
+        {
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        if (image.Name is not null && image.Name.EndsWith("jpg"))
+        {
+            return $"data:image/jpg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        if (image.Name is not null && image.Name.EndsWith("png"))
+        {
+            return $"data:image/png;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+        else
+        {
+            return $"data:image/jpeg;base64,{Convert.ToBase64String(image.ImageBytes)}";
+        }
+    }
+
 }

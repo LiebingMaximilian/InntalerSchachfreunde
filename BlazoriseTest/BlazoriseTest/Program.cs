@@ -14,6 +14,7 @@ internal class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
+        
         var con = builder.Configuration.GetConnectionString("DefaultConnection");
         var serverVersion = new MySqlServerVersion(new Version(10, 11, 6));
         builder.Services.AddDbContext<AppDbContext>(options => options
@@ -22,7 +23,7 @@ internal class Program
         AddBlazorise(builder.Services);
 
         var app = builder.Build();
-
+        
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -32,7 +33,7 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
-
+        
         app.UseStaticFiles();
 
         app.UseRouting();
