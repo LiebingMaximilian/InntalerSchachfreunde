@@ -1,6 +1,7 @@
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using InntalerSchachfreunde;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Configuration;
@@ -14,16 +15,25 @@ internal class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-        
+
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Login";
+                options.AccessDeniedPath = "/AccessDenied";
+            });
+
         var con = builder.Configuration.GetConnectionString("DefaultConnection");
         var serverVersion = new MySqlServerVersion(new Version(10, 11, 6));
         builder.Services.AddDbContext<AppDbContext>(options => options
-           .UseMySql(con, serverVersion));
+            .UseLazyLoadingProxies() // Enable lazy loading
+            .UseMySql(con, serverVersion));
+        builder.Services.AddTransient<ITournamentService, TournamentService>();
 
         AddBlazorise(builder.Services);
 
         var app = builder.Build();
-        
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -32,8 +42,10 @@ internal class Program
             app.UseHsts();
         }
 
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseHttpsRedirection();
-        
+
         app.UseStaticFiles();
 
         app.UseRouting();
@@ -47,8 +59,7 @@ internal class Program
         void AddBlazorise(IServiceCollection services)
         {
             services
-                .AddBlazorise();
-            services
+                .AddBlazorise()
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
         }

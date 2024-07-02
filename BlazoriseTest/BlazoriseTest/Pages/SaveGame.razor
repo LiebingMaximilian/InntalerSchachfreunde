@@ -1,0 +1,76 @@
+﻿@page "/saveGame"
+@using InntalerSchachfreunde.Entities;
+@inject ITournamentService tournamentService
+
+<Div Margin="Margin.IsAuto.OnX" Width="Width.Is50.OnDesktop.Is100.OnMobile">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
+        Spiel eintragen
+    </Heading>
+
+    <Card Shadow="Shadow.Default">
+        <CardBody>
+            <Form>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Primary">Spieler Weiß</DropdownToggle>
+                    <DropdownMenu>
+                        @foreach (var player in players)
+                        {
+                            <DropdownItem>@player.Name</DropdownItem>
+                        }
+                    </DropdownMenu>
+                </Dropdown>
+                gegen
+                <Dropdown>
+                    <DropdownToggle Color="Color.Primary">Spieler Schwarz</DropdownToggle>
+                    <DropdownMenu>
+                        @foreach (var player in players)
+                        {
+                            <DropdownItem>@player.Name</DropdownItem>
+                        }
+                    </DropdownMenu>
+                </Dropdown> 
+                =
+                <Dropdown>
+                    <DropdownToggle Color="Color.Primary">Ergebnis</DropdownToggle>
+                    <DropdownMenu>
+                        @foreach (var result in Results)
+                        {
+                            <DropdownItem>@result.Key</DropdownItem>
+                        }
+                    </DropdownMenu>
+                </Dropdown>
+                <Field>
+                    <FieldLabel>
+                        Passwort
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextEdit/>
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <Button Color="Color.Primary" Block>
+                        Speichern
+                    </Button>
+                </Field>
+            </Form>
+        </CardBody>
+    </Card>
+</Div>
+@code {
+    private List<Player> players = new List<Player>();
+    private Tournament tournament;
+    private Dictionary<string, double> Results = new Dictionary<string, double>()
+    {
+        {"1-0", 1 },
+        { "1/2-1/2", 0.5},
+        {"0-1", 0}
+    };
+    protected override async Task OnInitializedAsync()
+    {
+        var currentVm = await tournamentService.GetCurrentTournamentName();
+        tournament = await tournamentService.GetTournamentByName(currentVm);
+        players = tournament.PlayerTournaments.Select(pt => pt.Player).ToList();
+    }
+
+
+}

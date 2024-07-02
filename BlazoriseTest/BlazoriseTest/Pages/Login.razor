@@ -1,0 +1,46 @@
+﻿@page "/Login"
+<Div Margin="Margin.IsAuto.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
+        Sign in to your account
+    </Heading>
+
+    <Card Shadow="Shadow.Default">
+        <CardBody>
+            <Form>
+                <Field>
+                    <FieldLabel>
+                        Username
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextEdit Placeholder="MaxMuster" Role="TextRole.Email" @bind-Value="username" />
+                    </FieldBody>
+                </Field>
+                <Field>
+                    <FieldLabel>
+                        Password
+                    </FieldLabel>
+                    <FieldBody>
+                        <TextEdit Placeholder="********" Role="TextRole.Password" autocomplete="new-password" @bind-Value="password" />
+                    </FieldBody>
+                </Field>
+                <Field Flex="Flex.Wrap.JustifyContent.Between">
+                </Field>
+                <Field>
+                    <Button Color="Color.Primary" Clicked="@OnSignInClicked" Block>
+                        Sign in
+                    </Button>
+                </Field>
+            </Form>
+        </CardBody>
+    </Card>
+</Div>
+
+@code {
+    private string username;
+    private string password;
+
+    Task OnSignInClicked()
+    {
+        return Task.CompletedTask;
+    }
+}

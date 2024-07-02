@@ -1,0 +1,73 @@
+﻿@page "/vm"
+@using InntalerSchachfreunde.Entities
+
+@inject ITournamentService tournamentService
+
+<h3>Vereinsmeisterschaft</h3>
+
+@if (tournament != null)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Player</th>
+                @foreach (var opponent in players)
+                {
+                    <th>@opponent.Name</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var player in players)
+            {
+                <tr>
+                    <td>@player.Name</td>
+                    @foreach (var opponent in players)
+                    {
+                        <td>@GetResult(player, opponent)</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No tournament found.</p>
+}
+
+@code {
+    private Tournament tournament;
+    private List<Player> players;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentVm = await tournamentService.GetCurrentTournamentName();
+        tournament = await tournamentService.GetTournamentByName(currentVm);
+        players = tournament.PlayerTournaments.Select(pt => pt.Player).ToList();
+    }
+
+    private string GetResult(Player player, Player opponent)
+    {
+        var game = tournament.Games.FirstOrDefault(g => (g.PlayerWhite == player && g.PlayerBlack == opponent) || (g.PlayerWhite == opponent && g.PlayerBlack == player));
+
+        if (game == null)
+        {
+            return "-";
+        }
+        if (game.PlayerWhite == player)
+        {
+            return ToPointsString(game.PointsWhite);
+        }
+        return ToPointsString(game.PointsBlack);
+    }
+    private string ToPointsString(double? points)
+    {
+        if (points == 1)
+            return "1";
+        else if(points == 0)
+            return "0";
+        else
+            return "1/2";
+    }
+}

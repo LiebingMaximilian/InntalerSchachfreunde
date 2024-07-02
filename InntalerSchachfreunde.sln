@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InntalerSchachfreunde", "BlazoriseTest\BlazoriseTest\InntalerSchachfreunde.csproj", "{0445B3BA-5486-4C0A-9AF2-BB2EF406CDF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InntalerSchachfreundeTest", "InntalerSchachfreundeTest\InntalerSchachfreundeTest.csproj", "{FB45247D-27E7-4833-B05B-1F90F68CEA58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InntalerSchachfreundeTest", "InntalerSchachfreundeTest\InntalerSchachfreundeTest.csproj", "{FB45247D-27E7-4833-B05B-1F90F68CEA58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

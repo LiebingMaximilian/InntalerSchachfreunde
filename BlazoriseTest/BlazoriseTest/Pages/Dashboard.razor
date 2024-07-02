@@ -25,7 +25,7 @@
 <Row Gap="Gap.Is3">
 @foreach (var article in articles)
 {
-        <Column ColumnSize="ColumnSize.Is2.OnWidescreen.Is2.OnDesktop.Is1.OnTablet">
+        <Column ColumnSize="ColumnSize.Is3.OnWidescreen.Is3.OnDesktop.Is1.OnTablet">
             <Card>
                 @if (article.Images is not null)
                 {
@@ -55,8 +55,7 @@
 }   
 </Row>
 @code {
-    private List<Article> articles { get; set; }
-    private Dictionary<int, List<Entities.Image>> images { get; set; } = new Dictionary<int, List<Entities.Image>>();
+    private List<Article> articles { get; set; } = new List<Article>();
     private readonly int textlength = 100;
 
     protected override void OnInitialized()
@@ -64,16 +63,6 @@
         try
         {
             articles = DbContext.Articles.OrderByDescending(e => e.ReleaseDate).Take(3).ToList();
-
-            foreach (var article in articles)
-            {
-                var aimages = DbContext.Images.Where(i => i.ArticleId == article.Id);
-                if (aimages is not null && aimages.Count() > 0)
-                {
-                    images.Add(article.Id, aimages.ToList());
-                }
-
-            }
         }
         catch
         {
