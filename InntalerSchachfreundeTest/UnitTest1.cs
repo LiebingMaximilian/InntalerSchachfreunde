@@ -7,6 +7,7 @@ namespace InntalerSchachfreundeTest
     using System.Collections.ObjectModel;
     using Xunit;
 
+    [Collection("Test")]
     public class UnitTest1
     {
         [Fact]
@@ -167,7 +168,7 @@ namespace InntalerSchachfreundeTest
         public AppDbContext SetupDb()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
+                .UseInMemoryDatabase(databaseName: $"InMemoryTournamentDb_{Guid.NewGuid()}")
                 .Options;
 
              return new AppDbContext(options);
