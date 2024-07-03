@@ -5,6 +5,8 @@ using InntalerSchachfreunde;
 using InntalerSchachfreunde.Entities;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 [Collection("Test")]
 public class TournamentServiceTests
@@ -26,6 +28,8 @@ public class TournamentServiceTests
     {
         // Arrange
         var context = GetInMemoryDbContext();
+        var logger = Mock.Of<ILogger<TournamentService>>();
+
         var tournament = new Tournament { Name = "TestTournament",
         PlayerTournaments = new List<PlayerTournament>()};
         var player1 = new Player { Name = "Player1" };
@@ -35,7 +39,7 @@ public class TournamentServiceTests
         context.Tournaments.Add(tournament);
         context.SaveChanges();
 
-        var service = new TournamentService(context);
+        var service = new TournamentService(context, logger);
 
         // Act
         var crossTable = await service.GetCrossTableOfTournament("TestTournament");
@@ -51,6 +55,8 @@ public class TournamentServiceTests
     {
         // Arrange
         var context = GetInMemoryDbContext();
+        var logger = Mock.Of<ILogger<TournamentService>>();
+
         var tournament = new Tournament {
             Id = 1,
             Name = "TestTournament",
@@ -69,7 +75,7 @@ public class TournamentServiceTests
         context.Tournaments.Add(tournament);
         context.SaveChanges();
 
-        var service = new TournamentService(context);
+        var service = new TournamentService(context, logger);
 
         // Act
         var crossTable = await service.GetCrossTableOfTournament("TestTournament");
@@ -80,5 +86,68 @@ public class TournamentServiceTests
         crossTable.Rows[1][0].Should().Be("0"); // Player2 loses to Player1
         crossTable.Rows[2][0].Should().Be("0"); // Player3 loses against Player1
         crossTable.Rows[2][1].Should().Be("½");
+    }
+    [Fact]
+    public async Task SaveGame_GameDoesNotExist_ShouldSaveSuccessfully()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var logger = Mock.Of<ILogger<TournamentService>>();
+        var service = new TournamentService(context, logger);
+        var tournament = new Tournament { Name = "TestTournament" };
+        context.Tournaments.Add(tournament);
+        await context.SaveChangesAsync();
+
+        var game = new Game
+        {
+            Tournament = tournament,
+            PlayerWhiteId = 1,
+            PlayerBlackId = 2,
+            PointsWhite = 1
+        };
+
+        // Act
+        var (success, message) = await service.SaveGame(game);
+
+        // Assert
+        success.Should().BeTrue();
+        message.Should().BeEmpty();
+        context.Games.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task SaveGame_GameExists_ShouldNotSave()
+    {
+        // Arrange
+        var context = GetInMemoryDbContext();
+        var logger = Mock.Of<ILogger<TournamentService>>();
+        var service = new TournamentService(context, logger);
+        var tournament = new Tournament { Name = "TestTournament" };
+        context.Tournaments.Add(tournament);
+        var existingGame = new Game
+        {
+            Tournament = tournament,
+            PlayerWhiteId = 1,
+            PlayerBlackId = 2,
+            PointsWhite = 1
+        };
+        context.Games.Add(existingGame);
+        await context.SaveChangesAsync();
+
+        var newGame = new Game
+        {
+            Tournament = tournament,
+            PlayerWhiteId = 1,
+            PlayerBlackId = 2,
+            PointsWhite = 0.5 // Different result, but same players and tournament
+        };
+
+        // Act
+        var (success, message) = await service.SaveGame(newGame);
+
+        // Assert
+        success.Should().BeFalse();
+        message.Should().Be("This match already exits");
+        context.Games.Should().ContainSingle(); // No new game should be added
     }
 }

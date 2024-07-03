@@ -32,7 +32,7 @@
                 =
                 <Dropdown>
                     <DropdownToggle Color="Color.Primary">Ergebnis</DropdownToggle>
-                    <DropdownMenu>
+                    <DropdownMenu @bind->
                         @foreach (var result in Results)
                         {
                             <DropdownItem>@result.Key</DropdownItem>
@@ -48,7 +48,7 @@
                     </FieldBody>
                 </Field>
                 <Field>
-                    <Button Color="Color.Primary" Block>
+                    <Button Clicked="@Save" Color="Color.Primary" Block>
                         Speichern
                     </Button>
                 </Field>
@@ -59,6 +59,12 @@
 @code {
     private List<Player> players = new List<Player>();
     private Tournament tournament;
+
+    private string? SelectedResult;
+    private Player? SelectedPlayerWhite;
+    private Player? SelectedPlayerBlack;
+
+
     private Dictionary<string, double> Results = new Dictionary<string, double>()
     {
         {"1-0", 1 },
@@ -70,6 +76,34 @@
         var currentVm = await tournamentService.GetCurrentTournamentName();
         tournament = await tournamentService.GetTournamentByName(currentVm);
         players = tournament.PlayerTournaments.Select(pt => pt.Player).ToList();
+    }
+    private async Task Save()
+    {
+        if(SelectedResult is null)
+        {
+            //show error in result
+            return;
+        }
+        if(SelectedPlayerWhite is null)
+        {
+            //show error in player white
+            return;
+        }
+        if(SelectedPlayerBlack is null)
+        {
+            //show error in player black
+            return;
+        }
+
+        var game = new Game()
+        {
+            PlayerWhite = SelectedPlayerWhite,
+            PlayerBlack = SelectedPlayerBlack,
+            PointsWhite = Results[SelectedResult],
+            Tournament = tournament
+        };
+
+        await tournamentService.SaveGame(game);
     }
 
 

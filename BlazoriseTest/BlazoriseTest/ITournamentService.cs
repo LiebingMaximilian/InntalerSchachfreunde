@@ -6,16 +6,19 @@ public interface ITournamentService
 {
     Task<Tournament> GetTournamentByName(string name);
     Task<string> GetCurrentTournamentName();
+    Task<(bool, string)> SaveGame(Game game);
 }
 
 public class TournamentService : ITournamentService
 {
 
     AppDbContext? _context { get; set; }
+    private readonly ILogger<TournamentService> _logger;
 
-    public TournamentService(AppDbContext context)
+    public TournamentService(AppDbContext context, ILogger<TournamentService> logger)
     {
         _context = context;
+        _logger = logger;
     }
     public async Task<Tournament> GetTournamentByName(string name)
     {
@@ -99,7 +102,35 @@ public class TournamentService : ITournamentService
         crossTable.Rows = rowlist;
         return crossTable;
     }
-    
+
+    public async Task<(bool, string)> SaveGame(Game game)
+    {
+        try
+        {
+            var alreadyExists = await _context.Games.AnyAsync(g =>
+                g.TournamentId == game.Tournament.Id &&
+                (g.PlayerBlackId == game.PlayerBlackId &&
+                g.PlayerWhiteId == game.PlayerWhiteId) ||
+                (g.PlayerWhiteId == game.PlayerBlackId &&
+                g.PlayerBlackId == game.PlayerWhiteId)
+                );
+
+            if (alreadyExists)
+            {
+                return (false, "This match already exits");
+            }
+
+            _context.Games.Add(game);
+            await _context.SaveChangesAsync();
+            return (true, "");
+        }
+        catch(Exception e)
+        {
+            _logger.LogError($"Saving Game Failed. {e.Message}");
+            return (false, "");
+        }
+
+    }
 }
 public class PlayerGamesDto
 {     
