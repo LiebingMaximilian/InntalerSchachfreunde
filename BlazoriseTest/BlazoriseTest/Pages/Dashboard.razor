@@ -27,7 +27,7 @@
 {
         <Column ColumnSize="ColumnSize.Is3.OnWidescreen.Is3.OnDesktop.Is1.OnTablet">
             <Card>
-                @if (article.Images is not null)
+                @if (article.Images.Count > 0)
                 {
                     <CardImage Source="@ConvertBlobToBase64(article.Images.First())" />
                 }

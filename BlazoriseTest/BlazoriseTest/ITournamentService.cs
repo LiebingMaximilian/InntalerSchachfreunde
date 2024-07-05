@@ -7,6 +7,7 @@ public interface ITournamentService
     Task<Tournament> GetTournamentByName(string name);
     Task<string> GetCurrentTournamentName();
     Task<(bool, string)> SaveGame(Game game);
+    Task<CrossTable> GetCrossTableOfTournament(string tournamentName);
 }
 
 public class TournamentService : ITournamentService
@@ -59,6 +60,7 @@ public class TournamentService : ITournamentService
         for(int i = 0; i< players.Count(); i++)
         {
             var row = new List<string>();
+            row.Add(players.ElementAt(i).Name);
             for(int j = 0; j< players.Count(); j++)
             {
                 if(i == j)
