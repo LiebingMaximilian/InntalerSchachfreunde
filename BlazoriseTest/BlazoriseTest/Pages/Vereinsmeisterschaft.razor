@@ -7,8 +7,8 @@
 
 @if (crossTable is not null)
 {
-    <Table Bordered Narrow="true">
-        <TableHeader>
+    <Table Bordered Narrow="true" FullWidth="false" Resizable="true" Width="Width.Auto">
+        <TableHeader >
             <TableRow>
                 <TableHeaderCell>X</TableHeaderCell>
                 @foreach(var head in crossTable.Header)
