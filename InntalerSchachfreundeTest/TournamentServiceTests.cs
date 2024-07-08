@@ -127,7 +127,7 @@ public class TournamentServiceTests
         context.Tournaments.Add(tournament);
         var existingGame = new Game
         {
-            Tournament = tournament,
+            TournamentId = tournament.Id,
             PlayerWhiteId = 1,
             PlayerBlackId = 2,
             PointsWhite = 1
@@ -137,7 +137,7 @@ public class TournamentServiceTests
 
         var newGame = new Game
         {
-            Tournament = tournament,
+            TournamentId = tournament.Id,
             PlayerWhiteId = 1,
             PlayerBlackId = 2,
             PointsWhite = 0.5 // Different result, but same players and tournament
