@@ -3,14 +3,14 @@
 
 @inject ITournamentService tournamentService
 
-<h3>Vereinsmeisterschaft</h3>
+<h3>@currentTournamentName</h3>
 
 @if (crossTable is not null)
 {
-    <Table Bordered Narrow="true" FullWidth="false" Resizable="true" Width="Width.Auto">
+    <Table Bordered Narrow="true" FullWidth="false" Resizable="true" Responsive="true" Width="Width.Auto">
         <TableHeader >
             <TableRow>
-                <TableHeaderCell>X</TableHeaderCell>
+                <TableHeaderCell> </TableHeaderCell>
                 @foreach(var head in crossTable.Header)
                 {
                     <TableHeaderCell>@head</TableHeaderCell>
@@ -38,10 +38,11 @@ else
 @code {
     private List<Player> players;
     private CrossTable? crossTable;
+    private string? currentTournamentName;
 
     protected override async Task OnInitializedAsync()
     {
-        var currentVm = await tournamentService.GetCurrentTournamentName();
-        crossTable = await tournamentService.GetCrossTableOfTournament(currentVm);
+        currentTournamentName = await tournamentService.GetCurrentTournamentName();
+        crossTable = await tournamentService.GetCrossTableOfTournament(currentTournamentName);
     }
 }

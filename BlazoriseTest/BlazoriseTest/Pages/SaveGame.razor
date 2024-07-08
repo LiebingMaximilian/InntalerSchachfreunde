@@ -1,7 +1,23 @@
 ﻿@page "/saveGame"
 @using InntalerSchachfreunde.Entities;
 @inject ITournamentService tournamentService
+@inject NavigationManager NavigationManager;
+<style>
+    .form-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Add space between elements */
+    }
 
+    .form-container > div {
+        flex: 1; /* Flex grow to make the items responsive */
+    }
+
+    .centered {
+        text-align: center;
+        flex-basis: 100%;
+    }
+</style>
 <Div Margin="Margin.IsAuto.OnX" Width="Width.Is50.OnDesktop.Is100.OnMobile">
     <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
         Spiel eintragen
@@ -10,41 +26,41 @@
     <Card Shadow="Shadow.Default">
         <CardBody>
             <Form>
-                <Dropdown>
-                    <DropdownToggle Color="Color.Primary">Spieler Weiß</DropdownToggle>
-                    <DropdownMenu>
-                        @foreach (var player in players)
-                        {
-                            <DropdownItem>@player.Name</DropdownItem>
-                        }
-                    </DropdownMenu>
-                </Dropdown>
-                gegen
-                <Dropdown>
-                    <DropdownToggle Color="Color.Primary">Spieler Schwarz</DropdownToggle>
-                    <DropdownMenu>
-                        @foreach (var player in players)
-                        {
-                            <DropdownItem>@player.Name</DropdownItem>
-                        }
-                    </DropdownMenu>
-                </Dropdown> 
-                =
-                <Dropdown>
-                    <DropdownToggle Color="Color.Primary">Ergebnis</DropdownToggle>
-                    <DropdownMenu @bind->
-                        @foreach (var result in Results)
-                        {
-                            <DropdownItem>@result.Key</DropdownItem>
-                        }
-                    </DropdownMenu>
-                </Dropdown>
+                <div class="form-container">              
+                    <div class="form-container">
+                        <Select TValue="int?" @bind-SelectedValue="SelectedPlayerWhiteId" Color="Color.Primary">
+                            <SelectItem Disabled="true">Spieler Weiß</SelectItem>
+                            @foreach (var player in players)
+                            {
+                                <SelectItem Value="@player.Id">@player.Name</SelectItem>
+                            }
+                        </Select>
+                        <div class="centered">gegen</div>
+                        <Select TValue="int?" @bind-SelectedValue="SelectedPlayerBlackId" Color="Color.Primary">
+                            <SelectItem Disabled="true">Spieler Schwarz</SelectItem>
+
+                            @foreach (var player in players)
+                            {
+                                <SelectItem Value="@player.Id">@player.Name</SelectItem>
+                            }
+                        </Select>
+                        <div class="centered">=</div>
+                        <Select TValue="string" @bind-SelectedValue="SelectedResult" Color="Color.Primary">
+                            <SelectItem Disabled="true">Ergebnis</SelectItem>
+                            @foreach (var result in Results)
+                            {
+                                <SelectItem Value="@result.Key">@result.Key</SelectItem>
+                            }
+                        </Select>
+
+                    </div> 
+                </div>
                 <Field>
                     <FieldLabel>
                         Passwort
                     </FieldLabel>
                     <FieldBody>
-                        <TextEdit/>
+                        <TextEdit @bind-Text="@password" />
                     </FieldBody>
                 </Field>
                 <Field>
@@ -55,14 +71,20 @@
             </Form>
         </CardBody>
     </Card>
+    <Text>Bitte hier die Ergebnisse der Spiele eintragen. Die Spieler müssen bereits in der Datenbank vorhanden sein, gilt für das aktuelle Turnier (@tournament?.Name).</Text>
+    <br />
+    <Text TextColor="TextColor.Danger">@errorMessage</Text>
 </Div>
 @code {
     private List<Player> players = new List<Player>();
     private Tournament tournament;
 
     private string? SelectedResult;
-    private Player? SelectedPlayerWhite;
-    private Player? SelectedPlayerBlack;
+    private int? SelectedPlayerWhiteId;
+    private int? SelectedPlayerBlackId;
+
+    private string password = string.Empty; 
+    private string errorMessage = string.Empty;
 
 
     private Dictionary<string, double> Results = new Dictionary<string, double>()
@@ -74,37 +96,43 @@
     protected override async Task OnInitializedAsync()
     {
         var currentVm = await tournamentService.GetCurrentTournamentName();
-        tournament = await tournamentService.GetTournamentByName(currentVm);
+        tournament = await tournamentService.GetTournamentByNameAsNoTracking(currentVm);
         players = tournament.PlayerTournaments.Select(pt => pt.Player).ToList();
     }
     private async Task Save()
     {
+        if (SelectedPlayerWhiteId is null)
+        {
+            errorMessage = "Spieler Weiß nicht gewählt";
+            return;
+        }
+        if (SelectedPlayerBlackId is null)
+        {
+            errorMessage = "Spieler Schwarz nicht gewählt";
+            return;
+        }
         if(SelectedResult is null)
-        {
-            //show error in result
-            return;
-        }
-        if(SelectedPlayerWhite is null)
-        {
-            //show error in player white
-            return;
-        }
-        if(SelectedPlayerBlack is null)
-        {
-            //show error in player black
+        { 
+            errorMessage = "Ergebnis nicht gewählt";
             return;
         }
 
         var game = new Game()
         {
-            PlayerWhite = SelectedPlayerWhite,
-            PlayerBlack = SelectedPlayerBlack,
+            PlayerBlackId = SelectedPlayerBlackId.Value,
+            PlayerWhiteId = SelectedPlayerWhiteId.Value,
             PointsWhite = Results[SelectedResult],
-            Tournament = tournament
+            TournamentId = tournament.Id
         };
 
-        await tournamentService.SaveGame(game);
+        var result = await tournamentService.SaveGame(game, tournament.Id, password);
+        if (result.Item1)
+        {
+            NavigationManager.NavigateTo("/vm");
+        }
+        else
+        {
+            errorMessage = result.Item2;
+        }
     }
-
-
 }

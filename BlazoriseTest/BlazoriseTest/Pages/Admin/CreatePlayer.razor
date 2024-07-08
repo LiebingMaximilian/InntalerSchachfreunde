@@ -1,0 +1,46 @@
+﻿@page "/createPlayer"
+@using InntalerSchachfreunde.Services;
+@inject IPlayerService playerService;
+<Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
+        Neuen Spieler hinzufügen
+    </Heading>
+    <Form>
+        <Field>
+            <FieldLabel>
+                Name
+            </FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Spieler Name" @bind-Text=@playerName/>
+            </FieldBody>
+        </Field>
+        <Field>
+            <Button Color="Color.Primary" onclick="@AddPlayer">
+                Spieler hinzufügen
+            </Button>
+        </Field>
+    </Form>
+    <Text>@errorMessage</Text>
+</Div>
+@code {
+    private string? playerName;
+    private string? errorMessage;
+
+    private async Task AddPlayer()
+    {
+        if (string.IsNullOrEmpty(playerName))
+        {
+            errorMessage = "Bitte einen Namen eingeben";
+            return;
+        }
+        var result = await playerService.AddPlayerToDb(playerName);
+        if (!result)
+        {
+            errorMessage = "Fehler beim Anlegen des Spielers";
+            return;
+        }
+        errorMessage = "Spieler erfolgreich angelegt";
+        return;
+    }
+
+}

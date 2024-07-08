@@ -53,9 +53,8 @@ namespace InntalerSchachfreunde
             modelBuilder.Entity<Article>()
                 .HasMany(p => p.Images)
                 .WithOne(p => p.Article)
-                .HasForeignKey(p => p.ArticleId);
-
-
+                .HasForeignKey(p => p.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
     }

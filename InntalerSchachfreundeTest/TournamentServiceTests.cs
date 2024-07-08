@@ -47,7 +47,7 @@ public class TournamentServiceTests
         // Assert
         crossTable.Header.Should().Contain(new[] { "Player1", "Player2" });
         crossTable.Rows.Should().HaveCount(2);
-        crossTable.Rows.All(row => row.Contains("X") && row.Count == 2).Should().BeTrue();
+        crossTable.Rows.All(row => row.Contains("X") && row.Count == 3).Should().BeTrue();
     }
 
     [Fact]
@@ -60,7 +60,8 @@ public class TournamentServiceTests
         var tournament = new Tournament {
             Id = 1,
             Name = "TestTournament",
-            PlayerTournaments = new List<PlayerTournament>() 
+            PlayerTournaments = new List<PlayerTournament>(),
+            TournamentPw = "pw"
         };
         var player1 = new Player { Name = "Player1", Id = 1 };
         var player2 = new Player { Name = "Player2", Id = 2 };
@@ -82,10 +83,10 @@ public class TournamentServiceTests
 
         // Assert
         crossTable.Header.Should().Contain(new[] { "Player1", "Player2" });
-        crossTable.Rows[0][1].Should().Be("1"); // Player1 wins against Player2
-        crossTable.Rows[1][0].Should().Be("0"); // Player2 loses to Player1
-        crossTable.Rows[2][0].Should().Be("0"); // Player3 loses against Player1
-        crossTable.Rows[2][1].Should().Be("½");
+        crossTable.Rows[0][2].Should().Be("1"); // Player1 wins against Player2
+        crossTable.Rows[1][1].Should().Be("0"); // Player2 loses to Player1
+        crossTable.Rows[2][1].Should().Be("0"); // Player3 loses against Player1
+        crossTable.Rows[2][2].Should().Be("½");
     }
     [Fact]
     public async Task SaveGame_GameDoesNotExist_ShouldSaveSuccessfully()
@@ -94,7 +95,7 @@ public class TournamentServiceTests
         var context = GetInMemoryDbContext();
         var logger = Mock.Of<ILogger<TournamentService>>();
         var service = new TournamentService(context, logger);
-        var tournament = new Tournament { Name = "TestTournament" };
+        var tournament = new Tournament { Name = "TestTournament" , TournamentPw = "pw" };
         context.Tournaments.Add(tournament);
         await context.SaveChangesAsync();
 
@@ -107,7 +108,7 @@ public class TournamentServiceTests
         };
 
         // Act
-        var (success, message) = await service.SaveGame(game);
+        var (success, message) = await service.SaveGame(game, tournament.Id, tournament.TournamentPw);
 
         // Assert
         success.Should().BeTrue();
@@ -122,7 +123,7 @@ public class TournamentServiceTests
         var context = GetInMemoryDbContext();
         var logger = Mock.Of<ILogger<TournamentService>>();
         var service = new TournamentService(context, logger);
-        var tournament = new Tournament { Name = "TestTournament" };
+        var tournament = new Tournament { Name = "TestTournament" , TournamentPw = "pw" };
         context.Tournaments.Add(tournament);
         var existingGame = new Game
         {
@@ -143,7 +144,7 @@ public class TournamentServiceTests
         };
 
         // Act
-        var (success, message) = await service.SaveGame(newGame);
+        var (success, message) = await service.SaveGame(newGame, tournament.Id, tournament.TournamentPw);
 
         // Assert
         success.Should().BeFalse();

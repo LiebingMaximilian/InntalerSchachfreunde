@@ -1,6 +1,7 @@
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using InntalerSchachfreunde;
+using InntalerSchachfreunde.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,8 @@ internal class Program
             .UseLazyLoadingProxies() // Enable lazy loading
             .UseMySql(con, serverVersion));
         builder.Services.AddTransient<ITournamentService, TournamentService>();
+        builder.Services.AddTransient<IArticleService, ArticleService>();
+        builder.Services.AddTransient<IPlayerService, PlayerService>();
 
         AddBlazorise(builder.Services);
 

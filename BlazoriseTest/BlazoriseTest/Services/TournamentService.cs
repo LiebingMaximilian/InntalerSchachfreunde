@@ -1,19 +1,11 @@
-using InntalerSchachfreunde;
+﻿using InntalerSchachfreunde;
 using InntalerSchachfreunde.Entities;
 using Microsoft.EntityFrameworkCore;
-
-public interface ITournamentService
-{
-    Task<Tournament> GetTournamentByName(string name);
-    Task<string> GetCurrentTournamentName();
-    Task<(bool, string)> SaveGame(Game game);
-    Task<CrossTable> GetCrossTableOfTournament(string tournamentName);
-}
 
 public class TournamentService : ITournamentService
 {
 
-    AppDbContext? _context { get; set; }
+    private readonly AppDbContext _context;
     private readonly ILogger<TournamentService> _logger;
 
     public TournamentService(AppDbContext context, ILogger<TournamentService> logger)
@@ -23,7 +15,14 @@ public class TournamentService : ITournamentService
     }
     public async Task<Tournament> GetTournamentByName(string name)
     {
-        return await _context.Tournaments.SingleAsync(t => t.Name.Equals(name));
+        var tournament = await _context.Tournaments.SingleOrDefaultAsync(t => t.Name.Equals(name));
+        return tournament;
+    }
+    public async Task<Tournament> GetTournamentByNameAsNoTracking(string name)
+    {
+        var tournament = await _context.Tournaments.AsNoTracking().SingleOrDefaultAsync(t => t.Name.Equals(name));
+        tournament.TournamentPw = "";
+        return tournament;
     }
 
     public async Task<string> GetCurrentTournamentName()
@@ -77,13 +76,13 @@ public class TournamentService : ITournamentService
                     var game = games.FirstOrDefault(g => (g.PlayerWhiteId == players.ElementAt(i).Id && g.PlayerBlackId == players.ElementAt(j).Id) || (g.PlayerWhiteId == players.ElementAt(j).Id && g.PlayerBlackId == players.ElementAt(i).Id));
                     if(game is null)
                     {
-                        row.Add("");
+                        row.Add("-");
                     }
                     else
                     {
                         if(game.PointsWhite == 0.5)
                         {
-                            row.Add("�");
+                            row.Add("½");
                         }
                         else
                         {
@@ -105,12 +104,18 @@ public class TournamentService : ITournamentService
         return crossTable;
     }
 
-    public async Task<(bool, string)> SaveGame(Game game)
+    public async Task<(bool, string)> SaveGame(Game game, int tournamentid, string password)
     {
         try
         {
+            var tournament = await _context.Tournaments.SingleAsync(t => t.Id == tournamentid);
+            // this might seem a bit unsecure, but it just is not that important
+            if(!tournament.TournamentPw.Equals(password))
+            {
+                return (false, "Passwort falsch");
+            }
             var alreadyExists = await _context.Games.AnyAsync(g =>
-                g.TournamentId == game.Tournament.Id &&
+                g.TournamentId == game.TournamentId &&
                 (g.PlayerBlackId == game.PlayerBlackId &&
                 g.PlayerWhiteId == game.PlayerWhiteId) ||
                 (g.PlayerWhiteId == game.PlayerBlackId &&
@@ -133,16 +138,5 @@ public class TournamentService : ITournamentService
         }
 
     }
-}
-public class PlayerGamesDto
-{     
-    public List<Player> Players { get; set; }
-    public List<Game> Games { get; set; }
-}
-public class CrossTable
-{
-    public List<string> Header { get; set; }
-    public List<List<string>> Rows { get; set; }
-
 }
 

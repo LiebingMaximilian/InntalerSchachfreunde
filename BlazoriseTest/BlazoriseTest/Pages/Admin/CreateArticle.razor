@@ -1,0 +1,141 @@
+﻿@page "/createArticle"
+@using InntalerSchachfreunde.Entities;
+@using InntalerSchachfreunde.Services
+@inject NavigationManager NavigationManager;
+@inject IArticleService articleService;
+@inject IJSRuntime JS
+
+<Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
+        Artikel erstellen
+    </Heading>
+    <Form>
+        <Field>
+            <FieldLabel>
+                Überschrift
+            </FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Überschrift" @bind-Text="@headline"/>
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+                Text
+            </FieldLabel>
+            <FieldBody>
+                <MemoEdit Placeholder="Text hier eingeben" Rows="12" @bind-Text="@text" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+               Bild hochladen (optional)
+            </FieldLabel>
+            <FieldBody>
+                <div class="drop-zone" @ondragover="HandleDragOver">
+                    <InputFile OnChange="HandleFileUpload" />
+                </div>
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+                Bild-Unterschrift hinzufügen (optional)
+            </FieldLabel>
+            <FieldBody>
+                <MemoEdit Placeholder="Bild-Unterschrift hier eingeben" Rows="1" @bind-Text="@uploadedImageCaption" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <Button Color="Color.Primary" onclick="@CreateNewArticle">
+                Artikel anlegen
+            </Button>
+        </Field>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <Notification Color="Color.Danger">
+                @errorMessage
+            </Notification>
+        }
+    </Form>
+
+</Div>
+@code {
+
+    private List<IBrowserFile> uploadedFiles = new List<IBrowserFile>();
+    private List<InntalerSchachfreunde.Entities.Image>? uploadedImages;
+
+    private string text;
+    private string headline;
+    private string uploadedImageCaption = string.Empty;
+    private string errorMessage = string.Empty;
+
+    private async Task CreateNewArticle()
+    {
+        var articleToCreate = new Article()
+        {
+            Headline = headline,
+            Text = text
+        };
+        if(articleToCreate.Text is null || articleToCreate.Headline is null)
+        {
+            articleService.CreateNewArticle(articleToCreate);
+            return;
+        }
+        var result = await articleService.CreateNewArticle(articleToCreate);
+        var succeded = result.Item1;
+        var articleId = result.Item2;
+        if(succeded)
+        {
+            if (uploadedImages is not null)
+            {
+                foreach (var uploadedImage in uploadedImages)
+                {
+                    await articleService.AddImageToArticle(uploadedImage, articleId);
+                }
+            }
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Fehler beim Anlegen des Artikels";
+        }
+    }
+    private async void HandleDragOver(DragEventArgs e)
+    {
+        e.DataTransfer.DropEffect = "copy";
+        await JS.InvokeVoidAsync("preventDefaultHandler", e);
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles().ToList();
+        if (files.Any(f => !(f.Name.EndsWith(".jpeg") || f.Name.EndsWith(".jpg") || f.Name.EndsWith(".png"))))
+        {
+            errorMessage = "Nur Bilder im Format .jpeg, .jpg oder .png sind erlaubt.";
+            return;
+        }
+        await HandleFileUpload(files);
+    }
+
+    private async Task HandleFileUpload(List<IBrowserFile> files)
+    {
+
+        foreach (var file in files)
+        {
+            var image = new InntalerSchachfreunde.Entities.Image();
+            image.Name = file.Name;
+            image.Description = uploadedImageCaption;
+            using (var stream = file.OpenReadStream())
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.CopyToAsync(memoryStream);
+                image.ImageBytes = memoryStream.ToArray();
+            }
+            if (uploadedImages is null)
+            {
+                uploadedImages = new List<InntalerSchachfreunde.Entities.Image>();
+            }
+            uploadedImages.Add(image);
+            
+        }
+    }
+}
