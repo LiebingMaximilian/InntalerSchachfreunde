@@ -138,5 +138,32 @@ public class TournamentService : ITournamentService
         }
 
     }
+
+    public async Task<(bool,Tournament?)> CreateTournament(string tournamentName, string tournamentpw)
+    {
+        bool alreadyExists = await _context.Tournaments.AnyAsync(t => t.Name.Equals(tournamentName));
+        if(alreadyExists)
+        {
+            return (false, null);
+        }
+        var tournament = new Tournament() { Name = tournamentName, TournamentPw = tournamentpw };
+        _context.Tournaments.Add(tournament);
+        await _context.SaveChangesAsync();
+        return (true, tournament);
+    }
+
+    public async Task<bool> AddPlayerToTournament(int playerId, int tournamentId)
+    {
+        try
+        {
+            _context.PlayerTournament.Add(new PlayerTournament() { PlayerId = playerId, TournamentId = tournamentId });
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 }
 

@@ -7,5 +7,7 @@ public interface ITournamentService
     Task<Tournament> GetTournamentByNameAsNoTracking(string name);
     Task<(bool, string)> SaveGame(Game game, int tournamentid, string password);
     Task<CrossTable> GetCrossTableOfTournament(string tournamentName);
+    Task<(bool, Tournament?)> CreateTournament(string tournamentName, string tournamentpw);
+    Task<bool> AddPlayerToTournament(int playerId, int tournamentId);
 }
  

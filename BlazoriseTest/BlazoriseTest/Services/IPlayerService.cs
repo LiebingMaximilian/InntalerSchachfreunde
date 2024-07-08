@@ -6,6 +6,7 @@
     public interface IPlayerService
     {
         Task<bool> AddPlayerToDb(string name);
+        Task<List<Player>> GetPlayers();
     }
     public class PlayerService : IPlayerService
     {
@@ -28,6 +29,11 @@
             _context.Players.Add(new Player() { Name = name});
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Player>> GetPlayers()
+        {
+           return await _context.Players.ToListAsync();
         }
     }
 }

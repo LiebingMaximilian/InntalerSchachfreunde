@@ -1,5 +1,103 @@
-﻿<h3>CreateTournament</h3>
-
+﻿@page "/createTournament"
+@using InntalerSchachfreunde.Services;
+@using InntalerSchachfreunde.Entities;
+@inject ITournamentService tournamentService;
+@inject IPlayerService playerService;
+<style>
+    .one-line-cell {
+        display: flex;
+        align-items: center;
+    }
+</style>
+<Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
+        Neues Tunier hinzufügen
+    </Heading>
+    <Form>
+        <Field>
+            <FieldLabel>
+                Name
+            </FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Turnier Name" @bind-Text=@tournamentName />
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+                Passwort
+            </FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Passwort" @bind-Text=@tournamentPw />
+            </FieldBody>
+        </Field>
+         <Table Borderless Narrow="true">
+             <TableBody>
+                @foreach (var player in playersIsSelected)
+                 {
+                    <TableRow>
+                        <TableRowCell class="one-line-cell">
+                            <Check TValue="bool" @bind-Checked="playersIsSelected[player.Key]" /> @player.Key.Name
+                        </TableRowCell>
+                    </TableRow>
+                 }
+            </TableBody>
+         </Table>
+        <Field>
+            <Button Color="Color.Primary" onclick="@AddTournament">
+                Turnier anlegen
+            </Button>
+        </Field>
+    </Form>
+    <Text>@errorMessage</Text>
+</Div>
 @code {
+    private string? tournamentName;
+    private string? tournamentPw;
+    private string? errorMessage;
+
+    private Dictionary<Player, bool> playersIsSelected = new Dictionary<Player, bool>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var players = await playerService.GetPlayers();
+        foreach (var player in players)
+        {
+            playersIsSelected.Add(player, false);
+        }
+    }
+    private async Task AddTournament()
+    {
+        if (string.IsNullOrEmpty(tournamentName))
+        {
+            errorMessage = "Bitte einen Namen eingeben";
+            return;
+        }
+        if (string.IsNullOrEmpty(tournamentPw))
+        {
+            errorMessage = "Bitte ein Passwort eingeben";
+            return;
+        }
+        var result = await tournamentService.CreateTournament(tournamentName, tournamentPw);
+        if (!result.Item1)
+        {
+            errorMessage = "Fehler beim Anlegen des Turniers";
+            return;
+        }
+        var tournament = result.Item2;
+        if (tournament is not null)
+        {
+            foreach (var player in playersIsSelected)
+            {
+                if (player.Value)
+                {
+                    await tournamentService.AddPlayerToTournament(player.Key.Id, tournament.Id);
+                }
+            }
+        }
+
+        errorMessage = "Turnier erfolgreich angelegt";
+        return;
+    }
 
 }
