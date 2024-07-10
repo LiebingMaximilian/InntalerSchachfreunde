@@ -32,6 +32,7 @@ internal class Program
         builder.Services.AddTransient<ITournamentService, TournamentService>();
         builder.Services.AddTransient<IArticleService, ArticleService>();
         builder.Services.AddTransient<IPlayerService, PlayerService>();
+        builder.Services.AddTransient<IKeyValueService, KeyValueService>();
 
         AddBlazorise(builder.Services);
 

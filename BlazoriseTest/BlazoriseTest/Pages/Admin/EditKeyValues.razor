@@ -1,0 +1,49 @@
+﻿@page "/editValues"
+@using InntalerSchachfreunde.Entities;
+@using InntalerSchachfreunde.Services;
+@inject IKeyValueService keyValueService;
+@inject NavigationManager NavigationManager;
+<h3>EditKeyValues</h3>
+@foreach (var keyValue in keyValues)
+{
+    <h2>@keyValue.Key</h2>
+    <TextEdit Placeholder="Passwort" @bind-Text=@keyValues.Single(k => k.Key == keyValue.Key).Value />
+    <Button Color="Color.Primary" onclick="@(() => UpdateKeyValue(keyValue.Key))" />
+}
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <Notification Color="Color.Danger">
+        @errorMessage
+    </Notification>
+}
+
+@code 
+{
+    private List<KeyValue> keyValues;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        keyValues = await keyValueService.GetAllKeyValues();
+    }
+
+    private async Task UpdateKeyValue(string key)
+    {
+        try
+        {
+            var value = keyValues.Single(k => k.Key == key).Value;
+            var success = await keyValueService.SetValue(key, value);
+            if (!success)
+            {
+                errorMessage = $"Wert für Key '{key}' konnte nicht geändert werden";
+                return;
+            }
+            errorMessage = $"Wert für Key '{key}' erfolgreich zu '{value} 'geändert";
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+}
+
