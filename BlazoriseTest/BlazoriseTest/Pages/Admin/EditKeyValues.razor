@@ -3,12 +3,16 @@
 @using InntalerSchachfreunde.Services;
 @inject IKeyValueService keyValueService;
 @inject NavigationManager NavigationManager;
-<h3>EditKeyValues</h3>
+<h2>EditKeyValues</h2>
 @foreach (var keyValue in keyValues)
 {
-    <h2>@keyValue.Key</h2>
+    <Field Padding="Padding.Is2">
+    <h3>@keyValue.Key</h3>
     <TextEdit Placeholder="Passwort" @bind-Text=@keyValues.Single(k => k.Key == keyValue.Key).Value />
-    <Button Color="Color.Primary" onclick="@(() => UpdateKeyValue(keyValue.Key))" />
+        <Field Padding="Padding.Is1">
+        <Button Color="Color.Primary" onclick="@(() => UpdateKeyValue(keyValue.Key))">Speichern</Button>
+    </Field>
+    </Field>
 }
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -19,7 +23,7 @@
 
 @code 
 {
-    private List<KeyValue> keyValues;
+    private List<KeyValue> keyValues = new List<KeyValue>();
     private string errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -39,6 +43,7 @@
                 return;
             }
             errorMessage = $"Wert für Key '{key}' erfolgreich zu '{value} 'geändert";
+            StateHasChanged();
         }
         catch (Exception e)
         {

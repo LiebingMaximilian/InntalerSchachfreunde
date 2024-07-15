@@ -13,7 +13,7 @@
                 <TableHeaderCell> </TableHeaderCell>
                 @foreach(var head in crossTable.Header)
                 {
-                    <TableHeaderCell>@head</TableHeaderCell>
+                    <TableHeaderCell Class="vertical-header">@head</TableHeaderCell>
                 }
             </TableRow>
         </TableHeader>
@@ -34,6 +34,11 @@ else
 {
     <p>No tournament found.</p>
 }
+<style>
+    .vertical-header {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+    }</style>
 
 @code {
     private List<Player> players;

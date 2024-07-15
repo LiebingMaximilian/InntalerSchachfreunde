@@ -1,24 +1,30 @@
 ﻿@page "/"
 @inject IVersionProvider VersionProvider
 @using InntalerSchachfreunde.Entities
+@using InntalerSchachfreunde.Services
 @inject AppDbContext DbContext
+@inject IKeyValueService KeyValueService;
 
 <Paragraph>
-    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" >Willkommen bei den Inntaler Schachfreunden!</Heading>
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" >@headLineText</Heading>
 </Paragraph>
 <Paragraph>
-    Gespielt wird jeden Freitag um 19:00. Neue Spieler:innen sind herzlich Willkommen!<br /> <br />
+    @welcomeText
+    <br /> <br />
     <Anchor Class="unstyled-anchor" To="/anfahrt" Padding="Padding.Is2.OnY.Is3.OnX" Border="Border.RoundedPill" TextSize="TextSize.Small" Background="Background.Light">
         Zum Spiellokal
     </Anchor>
     </Paragraph>
 
-<Alert Color="Color.Info" Visible>
+    @if (infoBoxText is not null)
+    {
+        <Alert Color="Color.Info" Visible>
 
-    <Paragraph>
-        Diese Website befindet sich noch in der Entwicklung! Inhalte sind möglicherweise nicht korrekt.
-    </Paragraph>
-</Alert>
+                <Paragraph>
+                    @infoBoxText
+                </Paragraph>
+        </Alert>
+    }
 <Paragraph>
     Neuigkeiten:
 </Paragraph>
@@ -57,8 +63,11 @@
 @code {
     private List<Article> articles { get; set; } = new List<Article>();
     private readonly int textlength = 100;
+    private string? headLineText = "Willkommen bei den Inntaler Schachfreunden!";
+    private string? welcomeText = "Gespielt wird jeden Freitag um 19:00. Neue Spieler:innen sind herzlich Willkommen!";
+    private string? infoBoxText = null;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
@@ -69,7 +78,21 @@
             Console.WriteLine("Error fetching Db");
             articles = new List<Article> { new Article() { Headline = "An unexpected Error occured. Please try again later" } };
         }
+        headLineText = await GetKeyValue("HeadLineText") ?? headLineText;
+        welcomeText = await GetKeyValue("WelcomeText") ?? welcomeText;
+        infoBoxText = await GetKeyValue("InfoBoxText") ?? infoBoxText;
 
+    }
+    private async Task<string?> GetKeyValue(string key)
+    {
+        try
+        {
+            return await KeyValueService.GetValue(key);
+        }
+        catch
+        {
+            return null;
+        }
     }
     public string ConvertBlobToBase64(Entities.Image image)
     {

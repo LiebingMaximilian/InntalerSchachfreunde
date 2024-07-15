@@ -5,15 +5,15 @@ namespace InntalerSchachfreunde.Services
 {
     public interface IKeyValueService
     {
-        public string GetValue(string key);
+        public Task<string> GetValue(string key);
         public Task<bool> SetValue(string key, string value);
         public Task<List<KeyValue>> GetAllKeyValues();
     }
     class KeyValueService : IKeyValueService
     {
         private readonly AppDbContext _context;
-        private readonly ILogger _logger;
-        public KeyValueService(AppDbContext context, ILogger logger)
+        private readonly ILogger<KeyValueService> _logger;
+        public KeyValueService(AppDbContext context, ILogger<KeyValueService> logger)
         {   
             _context = context;
             _logger = logger;
@@ -32,9 +32,22 @@ namespace InntalerSchachfreunde.Services
             }        
         }
 
-        public string? GetValue(string key)
+        public async Task<string?> GetValue(string key)
         {
-            return _context.KeyValues.FirstOrDefault(kv => kv.Key == key, null)?.Value;
+            try 
+            { 
+                var kv =  await _context.KeyValues.FindAsync(key);
+                if (kv is not null)
+                {
+                    return kv.Value;
+                }
+                else return null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error getting value for key {key}. Exception: {e}", key, e.Message);
+                return null;
+            }
         }
 
         public async Task<bool> SetValue(string key, string value)
