@@ -1,7 +1,9 @@
 ﻿@page "/createArticle"
 @using InntalerSchachfreunde.Entities;
 @using InntalerSchachfreunde.Services
-@inject NavigationManager NavigationManager;
+@using System.Security.Claims
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 @inject IArticleService articleService;
 @inject IJSRuntime JS
 
@@ -68,8 +70,25 @@
     private string uploadedImageCaption = string.Empty;
     private string errorMessage = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Writer")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+    }
     private async Task CreateNewArticle()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Writer")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
         var articleToCreate = new Article()
         {
             Headline = headline,

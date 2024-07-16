@@ -3,6 +3,9 @@
 @using InntalerSchachfreunde.Services;
 @inject IKeyValueService keyValueService;
 @inject NavigationManager NavigationManager;
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 <h2>EditKeyValues</h2>
 @foreach (var keyValue in keyValues)
 {
@@ -28,6 +31,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Admin")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
         keyValues = await keyValueService.GetAllKeyValues();
     }
 

@@ -1,6 +1,10 @@
 ﻿@page "/createPlayer"
 @using InntalerSchachfreunde.Services;
 @inject IPlayerService playerService;
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 <Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
     <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
         Neuen Spieler hinzufügen
@@ -25,7 +29,16 @@
 @code {
     private string? playerName;
     private string? errorMessage;
-
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Admin")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+    }
     private async Task AddPlayer()
     {
         if (string.IsNullOrEmpty(playerName))

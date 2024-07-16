@@ -3,6 +3,10 @@
 @using InntalerSchachfreunde.Entities;
 @inject ITournamentService tournamentService;
 @inject IPlayerService playerService;
+@inject NavigationManager NavigationManager;
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider;
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 <style>
     .one-line-cell {
         display: flex;
@@ -60,6 +64,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Admin")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
         var players = await playerService.GetPlayers();
         foreach (var player in players)
         {
@@ -68,6 +79,13 @@
     }
     private async Task AddTournament()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || roles.Any(c => c.Value == "Admin"))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
         if (string.IsNullOrEmpty(tournamentName))
         {
             errorMessage = "Bitte einen Namen eingeben";

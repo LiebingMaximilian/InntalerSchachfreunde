@@ -1,4 +1,16 @@
 ﻿@page "/Login"
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@using Blazored.SessionStorage;
+@using InntalerSchachfreunde.Services;
+@inject NavigationManager NavigationManager
+@inject IAuthorizationService AuthorizationService
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject ISessionStorageService SessionStorage
+@inject AuthService AuthService
+
+
 <Div Margin="Margin.IsAuto.OnX" Width="Width.Is50">
     <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
         Sign in to your account
@@ -12,7 +24,7 @@
                         Username
                     </FieldLabel>
                     <FieldBody>
-                        <TextEdit Placeholder="MaxMuster" Role="TextRole.Email" @bind-Value="username" />
+                        <TextEdit Placeholder="MaxMuster" Role="TextRole.Email" @bind-Text="@username" />
                     </FieldBody>
                 </Field>
                 <Field>
@@ -20,7 +32,7 @@
                         Password
                     </FieldLabel>
                     <FieldBody>
-                        <TextEdit Placeholder="********" Role="TextRole.Password" autocomplete="new-password" @bind-Value="password" />
+                        <TextEdit Placeholder="********" Role="TextRole.Password" autocomplete="new-password" @bind-Text="@password" />
                     </FieldBody>
                 </Field>
                 <Field Flex="Flex.Wrap.JustifyContent.Between">
@@ -33,14 +45,23 @@
             </Form>
         </CardBody>
     </Card>
+    <p>@statusMessage</p>
 </Div>
 
 @code {
     private string username;
     private string password;
+    private string statusMessage;
 
-    Task OnSignInClicked()
+    private async Task OnSignInClicked()
     {
-        return Task.CompletedTask;
+        var authRequest = new AuthRequest { Username = username, Password = password };
+        var authResponse = await AuthService.Login(authRequest!);
+        if (authResponse != null)
+        {
+            await SessionStorage.SetItemAsync("token", authResponse.Token);
+            ((CustomAuthenticationStateProvider)AuthenticationStateProvider).AuthenticateUser(authResponse.Token!);
+            NavigationManager.NavigateTo("/", true);
+        }
     }
 }

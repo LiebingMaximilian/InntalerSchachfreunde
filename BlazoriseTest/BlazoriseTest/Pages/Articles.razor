@@ -1,7 +1,7 @@
 ﻿@page "/articles"
 @using InntalerSchachfreunde.Entities
 @inject AppDbContext DbContext
-
+<FocusOnNavigate Selector="Card" />
     @foreach (Article article in articles)
     {        
             <Div Margin="Margin.IsAuto.OnX.Is3.OnY" Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
@@ -47,6 +47,7 @@
 
 
 @code {
+    private int artikelId { get; set; } = 0;
     private List<Article> articles { get; set; }
     private Dictionary<int, List<Entities.Image>> images { get; set; } = new Dictionary<int, List<Entities.Image>>();
 

@@ -32,6 +32,7 @@
         </TableBody>
     </Table>
     <Button Color="Color.Primary" onclick="@PrintTable">Drucken</Button>
+    <Button Color="Color.Primary" onclick="@NavigateToSaveGame">Spiel eintragen</Button>
 }
 else
 {
@@ -57,5 +58,9 @@ else
     {
         NavigationManager.NavigateTo("/printvm");
         //await JS.InvokeAsync<object>("open", new object[] { "/printvm", " blank" });
+    }
+    public void NavigateToSaveGame()
+    {
+        NavigationManager.NavigateTo("/savegame");
     }
 }

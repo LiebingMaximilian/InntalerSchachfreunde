@@ -1,0 +1,90 @@
+﻿@page "/register"
+@using InntalerSchachfreunde.Services
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+
+<EditForm Model="registerModel" OnValidSubmit="HandleRegister" FormName="RegisterModel" class="login-form-container">
+    <DataAnnotationsValidator />
+    <Microsoft.AspNetCore.Components.Forms.ValidationSummary />
+    <div>
+        <label for="username">User Name:</label>
+        <InputText id="username" @bind-Value="registerModel.UserName" />
+    </div>
+    <div>
+        <label for="email">Email (optional):</label>
+        <InputText id="email" @bind-Value="registerModel.Email" />
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <InputText id="password" @bind-Value="registerModel.Password" type="password" />
+    </div>
+    <div>
+        <label for="confirmPassword">Confirm Password:</label>
+        <InputText id="confirmPassword" @bind-Value="registerModel.ConfirmPassword" type="password" />
+    </div>
+    <button type="submit">Register</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <p>@statusMessage</p>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    public RegisterModel registerModel { get; set; }
+    private string statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        registerModel = new RegisterModel();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Admin")))
+        {
+            Navigation.NavigateTo("/Login");
+        }
+    }
+    private async Task HandleRegister()
+    {
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            statusMessage = "Passwords do not match.";
+            return;
+        }
+
+        var user = new IdentityUser { UserName = registerModel.UserName, Email = registerModel.Email };
+        var result = await UserManager.CreateAsync(user, registerModel.Password);
+
+        if (result.Succeeded)
+        {
+            statusMessage = "User created successfully!";
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            statusMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        public string UserName { get; set; }
+
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        [MinLength(4, ErrorMessage = "Password must be at least 6 characters long.")]
+        public string Password { get; set; }
+
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; }
+    }
+}

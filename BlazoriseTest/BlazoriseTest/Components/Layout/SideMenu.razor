@@ -1,4 +1,7 @@
-﻿<Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Tablet" ThemeContrast="ThemeContrast.Dark"
+﻿@using System.Security.Claims
+@using InntalerSchachfreunde.Services
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+<Bar Breakpoint="Breakpoint.Desktop" NavigationBreakpoint="Breakpoint.Tablet" ThemeContrast="ThemeContrast.Dark"
      Mode="BarMode.VerticalInline" CollapseMode="BarCollapseMode.Small">
     <BarToggler />
     <BarBrand>
@@ -37,36 +40,76 @@
                     <BarIcon IconName="IconName.Circle" />
                     Kreisliga
                 </BarLink>
+@*                 <BarLink To="/saveGame" Position="Position.Relative.Bottom">
+                    <BarIcon IconName="IconName.Key" />
+                    Spiel eintragen
+                </BarLink> *@
                 <BarLink To="/impressum">
                     <BarIcon IconName="IconName.Copyright" />
                     Impressum
                 </BarLink>
-                <BarLink To="/createArticle" Position="Position.Relative.Bottom">
-                    <BarIcon IconName="IconName.Key" />
-                    Artikel anlegen
-                </BarLink>
-                <BarLink To="/saveGame" Position="Position.Relative.Bottom">
-                    <BarIcon IconName="IconName.Key" />
-                    Spiel eintragen
-                </BarLink>
-                <BarLink To="/createPlayer" Position="Position.Relative.Bottom">
-                    <BarIcon IconName="IconName.Key" />
-                    Spieler anlegen
-                </BarLink>
-                <BarLink To="/createTournament" Position="Position.Relative.Bottom">
-                    <BarIcon IconName="IconName.Key" />
-                    Turnier anlegen
-                </BarLink>
-                <BarLink To="/editValues" Position="Position.Relative.Bottom">
-                    <BarIcon IconName="IconName.Key" />
-                    KeyValues bearbeiten
-                </BarLink>
+                @if (isAuthorized)
+                {                  
+                    <BarLink To="/createArticle" Position="Position.Relative.Bottom">
+                        <BarIcon IconName="IconName.Key" />
+                        Artikel anlegen
+                    </BarLink>
+                }
+                @if (isAdmin){
+
+
+                    <BarLink To="/createPlayer" Position="Position.Relative.Bottom">
+                        <BarIcon IconName="IconName.Key" />
+                        Spieler anlegen
+                    </BarLink>
+                    <BarLink To="/createTournament" Position="Position.Relative.Bottom">
+                        <BarIcon IconName="IconName.Key" />
+                        Turnier anlegen
+                    </BarLink>
+                    <BarLink To="/editValues" Position="Position.Relative.Bottom">
+                        <BarIcon IconName="IconName.Key" />
+                        KeyValues bearbeiten
+                    </BarLink>
+                }
+                else
+                {
+                    <BarLink To="/login">
+                        <BarIcon IconName="IconName.Key" />
+                        Login
+                    </BarLink>
+                }
             </BarItem>
         </BarStart>
     </BarMenu>
 </Bar>
 @code {
     private bool pagesBarVisible = true;
+    private bool isAuthorized = false;
+    private bool isAdmin = false;
 
     RenderFragment customIcon =@<img src="/logoSF.png" style="width:40px" />;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated)
+        {
+            isAuthorized = false;
+        }
+        else
+        {
+            isAuthorized = true;
+        }
+        if (user.Identity.IsAuthenticated && roles.Any(c => c.Value.Contains("Admin")))
+        {
+            isAdmin = true;
+        }
+        else
+        {
+            isAdmin = false;
+        }
+        await base.OnInitializedAsync();
+    }
 }
