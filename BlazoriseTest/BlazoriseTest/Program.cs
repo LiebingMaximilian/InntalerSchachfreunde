@@ -28,7 +28,7 @@ internal class Program
         var serverVersion = new MySqlServerVersion(new Version(10, 11, 6));
         builder.Services.AddDbContext<AppDbContext>(options => options
             .UseLazyLoadingProxies() // Enable lazy loading
-            .UseMySql(con, serverVersion));
+            .UseMySql(con, serverVersion), ServiceLifetime.Transient);
         builder.Services.AddTransient<ITournamentService, TournamentService>();
         builder.Services.AddTransient<IArticleService, ArticleService>();
         builder.Services.AddTransient<IPlayerService, PlayerService>();

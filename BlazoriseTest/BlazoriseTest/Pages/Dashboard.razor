@@ -115,6 +115,10 @@
     }
     public string GetFirstPartOfText(string text)
     {
+        if (text is null)
+        {
+            return "";
+        }
         if(text.Length > textlength)
         {
             return text.Substring(0, 100) + "...";

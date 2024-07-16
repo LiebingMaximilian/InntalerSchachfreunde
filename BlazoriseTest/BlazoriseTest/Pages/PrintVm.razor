@@ -1,0 +1,69 @@
+﻿@page "/printvm"
+@using InntalerSchachfreunde.Services;
+@using InntalerSchachfreunde.Entities
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@inject ITournamentService tournamentService
+@using Blazorise;
+@using Blazorise.Components;
+@layout Layouts.EmptyLayout;
+
+@if (crossTable is not null)
+{
+    <body onload="ReportBody.print()">
+        <Table Bordered Narrow="false" FullWidth="false" Resizable="true" Responsive="true" Width="Width.Auto" Id ="printableTable">
+            <TableHeader >
+                <TableRow>
+                    <TableHeaderCell> </TableHeaderCell>
+                    @foreach(var head in crossTable.Header)
+                    {
+                        <TableHeaderCell Class="vertical-header">@head</TableHeaderCell>
+                    }
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                @foreach(var row in crossTable.Rows)
+                {                
+                    <TableRow>
+                        @foreach (var cell in row)
+                        {
+                            if (!cell.Equals("-"))
+                            {
+                                if(cell.Length > 1)
+                                {
+                                    <TableHeaderCell>@cell</TableHeaderCell>
+                                }
+                                else
+                                {
+                                    <TableRowCell>@cell</TableRowCell>
+                                }
+                            }
+                            else
+                            {
+                                <TableRowCell></TableRowCell>
+                            }
+                        }
+                    </TableRow>
+                }
+            </TableBody>
+        </Table>
+    </body>
+}
+<style>
+    .vertical-header {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+    }</style>
+@code {
+    private List<Player> players;
+    private CrossTable? crossTable;
+    private string? currentTournamentName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentTournamentName = await tournamentService.GetCurrentTournamentName();
+        crossTable = await tournamentService.GetCrossTableOfTournament(currentTournamentName);
+        StateHasChanged();
+        JS.InvokeVoidAsync("print");
+    }
+}

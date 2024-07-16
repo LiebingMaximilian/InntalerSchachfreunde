@@ -35,6 +35,20 @@
 	  <Content Update="Pages\Dashboard.razor">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
+	  <Content Update="Pages\PrintVm.razor">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Pages\Vereinsmeisterschaft.razor">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <UpToDateCheckInput Remove="Pages\PrintVm.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <_ContentIncludedByDefault Remove="Pages\PrintVm.razor" />
 	</ItemGroup>
 
 </Project>

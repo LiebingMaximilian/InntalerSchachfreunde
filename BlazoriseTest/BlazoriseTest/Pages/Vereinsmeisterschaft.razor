@@ -1,13 +1,15 @@
 ﻿@page "/vm"
 @using InntalerSchachfreunde.Entities
-
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 @inject ITournamentService tournamentService
+@inject NavigationManager NavigationManager
 
 <h3>@currentTournamentName</h3>
 
 @if (crossTable is not null)
 {
-    <Table Bordered Narrow="true" FullWidth="false" Resizable="true" Responsive="true" Width="Width.Auto">
+    <Table Bordered Narrow="true" FullWidth="false" Resizable="true" Responsive="true" Width="Width.Auto" Id ="printableTable">
         <TableHeader >
             <TableRow>
                 <TableHeaderCell> </TableHeaderCell>
@@ -29,6 +31,7 @@
             }
         </TableBody>
     </Table>
+    <Button Color="Color.Primary" onclick="@PrintTable">Drucken</Button>
 }
 else
 {
@@ -49,5 +52,10 @@ else
     {
         currentTournamentName = await tournamentService.GetCurrentTournamentName();
         crossTable = await tournamentService.GetCrossTableOfTournament(currentTournamentName);
+    }
+    private async Task PrintTable()
+    {
+        NavigationManager.NavigateTo("/printvm");
+        //await JS.InvokeAsync<object>("open", new object[] { "/printvm", " blank" });
     }
 }
