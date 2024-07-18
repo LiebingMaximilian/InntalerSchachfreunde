@@ -73,6 +73,7 @@ internal class Program
         builder.Services.AddTransient<IArticleService, ArticleService>();
         builder.Services.AddTransient<IPlayerService, PlayerService>();
         builder.Services.AddTransient<IKeyValueService, KeyValueService>();
+        builder.Services.AddTransient<ITerminService, TerminService>();
 
         builder.Services.AddBlazoredSessionStorage(config => {
             config.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;

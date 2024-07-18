@@ -1,0 +1,153 @@
+﻿@page "/createTermin"
+@using InntalerSchachfreunde.Entities;
+@using InntalerSchachfreunde.Services;
+@using System.Security.Claims;
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider;
+@inject NavigationManager NavigationManager;
+@inject ITerminService TerminService;
+@inject IJSRuntime JS;
+
+<Div Margin="Margin.IsAuto.OnX" Padding="Padding.Is5.OnX" Width="Width.Is50">
+    <Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom">
+        Termin erstellen
+    </Heading>
+    <Form>
+        <Field>
+            <FieldLabel>
+                Name
+            </FieldLabel>
+            <FieldBody>
+                <TextEdit Placeholder="Name" @bind-Text="@name" />
+            </FieldBody>
+        </Field>
+        <Field>
+            <FieldLabel>
+                Anmerkung
+            </FieldLabel>
+            <FieldBody>
+                <MemoEdit Placeholder="Text hier eingeben" Rows="2" @bind-Text="@annotation" />
+            </FieldBody>
+        </Field>
+        <Field>        
+        <DatePicker TValue="DateTime?" @bind-Date="@date" Inline DisplayFormat="dd.MM.yyyy" InputFormat="dd.MM.yyyy" Placeholder="@DateTime.Now.ToString("dd.MM.yyyy")" />
+        </Field>
+        <Field>
+        <TimePicker TValue="TimeSpan?" @bind-Time="@time" Inline/>
+        </Field>
+        <Field>
+            <Button Color="Color.Primary" onclick="@CreateNewTermin">
+                Termin anlegen
+            </Button>
+        </Field>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <Notification Color="Color.Danger">
+                @errorMessage
+            </Notification>
+        }
+    </Form>
+    <Table Striped Narrow="true" Responsive="true">
+        <TableHeader>
+            <TableRow>
+                <TableHeaderCell>Veranstaltung</TableHeaderCell>
+                <TableHeaderCell>Datum</TableHeaderCell>
+                <TableHeaderCell>Anmerkung</TableHeaderCell>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            @foreach (var termin in TerminList)
+            {
+                <TableRow>
+                    <TableRowCell>@termin.Name</TableRowCell>
+                    <TableRowCell>@termin.DateTime.ToString("dd.MM.yyyy HH:mm")</TableRowCell>
+                    <TableRowCell>@termin.Annotation</TableRowCell>
+                    <TableRowCell>
+                        <Button Color="Color.Primary" onclick="@(() => Delete(termin.Id))">
+                            Delete
+                        </Button>
+                    </TableRowCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+</Div>
+
+@code {
+    private string? name;
+    private string? annotation;
+    private DateTime? _date;
+    TimeSpan? time = TimeSpan.FromHours(19);
+    private List<Termin>? TerminList { get; set; } = new List<Termin>();
+
+
+
+    DateTime? date
+    {
+        get => _date;
+        set
+        {
+            _date = value;
+        }
+    }
+
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Writer")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+        TerminList = TerminService.GetTermine();
+
+    }
+
+    private async Task CreateNewTermin()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Writer")))
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+        if (name is null || date is null || time is null)
+        {
+            errorMessage = "Name und Datum müssen angegeben werden.";
+            return;
+        }
+        
+        var newTermin = new Termin()
+        {
+            Annotation = annotation,
+            DateTime = new DateTime(date.Value.Year, date.Value.Month, date.Value.Day, time.Value.Hours, time.Value.Minutes, 0),
+            Name = name
+        };
+
+        try
+        {
+            var result = await TerminService.CreateTermin(newTermin);
+            if (result is not null)
+            {
+                NavigationManager.NavigateTo("/termine");
+            }
+            else
+            {
+                errorMessage = "Fehler beim Anlegen des Termins";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+    private async void Delete(int id)
+    {
+        await TerminService.DeleteTermin(id);
+        TerminList = TerminService.GetTermine();
+        StateHasChanged();
+    }
+}

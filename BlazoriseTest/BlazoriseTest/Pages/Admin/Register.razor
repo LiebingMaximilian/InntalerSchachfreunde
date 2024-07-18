@@ -57,9 +57,15 @@
             statusMessage = "Passwords do not match.";
             return;
         }
-
-        var user = new IdentityUser { UserName = registerModel.UserName, Email = registerModel.Email };
-        var result = await UserManager.CreateAsync(user, registerModel.Password);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role);
+        if (!user.Identity.IsAuthenticated || !roles.Any(c => c.Value.Contains("Admin")))
+        {
+            Navigation.NavigateTo("/Login");
+        }
+        var newuser = new IdentityUser { UserName = registerModel.UserName, Email = registerModel.Email };
+        var result = await UserManager.CreateAsync(newuser, registerModel.Password);
 
         if (result.Succeeded)
         {

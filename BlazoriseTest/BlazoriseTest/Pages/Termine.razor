@@ -1,8 +1,9 @@
 ﻿@page "/termine"
 @using System.Globalization
 @using Entities
+@using InntalerSchachfreunde.Services
 @inject IJSRuntime JS
-@inject AppDbContext DbContext
+@inject ITerminService TerminService
 
 <PageTitle>Termine:</PageTitle>
 <Div Width="Width.Is100.OnDesktop.Is100.OnMobile">
@@ -32,9 +33,6 @@
 
     protected override void OnInitialized()
     {
-        TerminList = DbContext.Termins.Where(t => t.DateTime > DateTime.Now)
-        .OrderBy(t => t.DateTime)
-        .AsParallel()
-        .ToList();
+        TerminList = TerminService.GetTermine();
     }
 }

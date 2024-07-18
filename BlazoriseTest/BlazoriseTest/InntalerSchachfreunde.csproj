@@ -51,7 +51,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <_ContentIncludedByDefault Remove="Pages\Admin\CreateTermin.razor" />
 	  <_ContentIncludedByDefault Remove="Pages\PrintVm.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <UpToDateCheckInput Remove="Pages\Admin\CreateTermin.razor" />
 	</ItemGroup>
 
 </Project>
