@@ -27,6 +27,16 @@ internal class Program
 
 
         var con = builder.Configuration.GetConnectionString("DefaultConnection");
+        var getPassword = GetEnvironmentVariable("MYSQL_PASSWORD");
+        if (getPassword is not null)
+        {
+            con += "Password=" + getPassword +";";
+        }
+        var token = GetEnvironmentVariable("JWT_TOKEN");
+        if (token is not null)
+        {
+            builder.Configuration["AppSettings:Token"] = token;
+        }
         var serverVersion = new MySqlServerVersion(new Version(10, 11, 6));
         builder.Services.AddDbContext<AppDbContext>(options => options
             .UseLazyLoadingProxies() // Enable lazy loading
@@ -120,5 +130,10 @@ internal class Program
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
         }
+    }
+
+    private static string? GetEnvironmentVariable(string key)
+    {
+        return Environment.GetEnvironmentVariable(key);
     }
 }
