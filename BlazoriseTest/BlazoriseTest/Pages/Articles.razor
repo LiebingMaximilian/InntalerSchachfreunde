@@ -1,7 +1,6 @@
 ﻿@page "/articles"
 @using InntalerSchachfreunde.Entities
 @inject AppDbContext DbContext
-<FocusOnNavigate Selector="Card" />
     @foreach (Article article in articles)
     {        
             <Div Margin="Margin.IsAuto.OnX.Is3.OnY" Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">

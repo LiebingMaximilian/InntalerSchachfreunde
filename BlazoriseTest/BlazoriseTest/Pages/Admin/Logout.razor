@@ -2,7 +2,8 @@
 @using Blazored.SessionStorage;
 @inject ISessionStorageService SessionStorage
 @inject NavigationManager NavigationManager
-@code {
+@code 
+{
     protected override async Task OnInitializedAsync()
     {
         await SessionStorage.ClearAsync();
