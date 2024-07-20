@@ -24,8 +24,13 @@ internal class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-
-
+        //builder.WebHost.ConfigureKestrel(options =>
+        //{
+        //    options.ListenAnyIP(443, listenOptions =>
+        //    {
+        //        listenOptions.UseHttps(@"..\..\server.pfx", "k55ijW0sjfgdh");
+        //    });
+        //});
         var con = builder.Configuration.GetConnectionString("DefaultConnection");
         var getPassword = GetEnvironmentVariable("MYSQL_PASSWORD");
         if (getPassword is not null)

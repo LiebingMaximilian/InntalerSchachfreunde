@@ -44,6 +44,10 @@ public class TournamentService : ITournamentService
     public async Task<CrossTable> GetCrossTableOfTournament(string tournamentName)
     {
         var tournament = await GetTournamentByName(tournamentName);
+        if(tournament is null)
+        {
+            return null;
+        }
         var playersTournaments = await GetPlayersAndGamesOfTournament(tournament);
 
         var players = playersTournaments.Players.OrderBy(p => p.Name);
@@ -74,7 +78,7 @@ public class TournamentService : ITournamentService
                         continue;
                     }
                     var game = games.FirstOrDefault(g => (g.PlayerWhiteId == players.ElementAt(i).Id && g.PlayerBlackId == players.ElementAt(j).Id) || (g.PlayerWhiteId == players.ElementAt(j).Id && g.PlayerBlackId == players.ElementAt(i).Id));
-                    if(game is null)
+                    if(game is null || game.PointsWhite is null)
                     {
                         row.Add("-");
                     }
@@ -149,6 +153,7 @@ public class TournamentService : ITournamentService
         var tournament = new Tournament() { Name = tournamentName, TournamentPw = tournamentpw };
         _context.Tournaments.Add(tournament);
         await _context.SaveChangesAsync();
+
         return (true, tournament);
     }
 
@@ -165,5 +170,113 @@ public class TournamentService : ITournamentService
             return false;
         }
     }
+
+    public async Task<List<Game>> GetScheduledGames(string tournamentName)
+    {
+        return await _context.Games.Where(g => g.Tournament.Name.Equals(tournamentName) && g.PointsWhite == null).Include(g => g.PlayerWhite).Include(g => g.PlayerBlack).ToListAsync();
+    }
+
+    public async Task GenerateRoundRobinSchedule(int tournamentId)
+    {
+        var players = _context.PlayerTournament.Where(pt => pt.TournamentId == tournamentId).Select(pt => pt.Player).ToList();
+        var games = new List<Game>();
+        if (players.Count % 2 != 0)
+        {
+            players.Add(new Player() {Id = 0, Name = "[Spielfrei]" }); // Add a dummy player if odd number of players
+        }
+
+        int numRounds = players.Count - 1;
+        int numMatchesPerRound = players.Count / 2;
+
+        for (int round = 0; round < numRounds; round++)
+        {
+            for (int match = 0; match < numMatchesPerRound; match++)
+            {
+                Player white = players[match];
+                Player black = players[players.Count - 1 - match];
+
+                if (white.Name != "[Spielfrei]" && black.Name != "[Spielfrei]")
+                {
+                    if (match % 2 == 1 || (round % 2 == 1 && match == 0))
+                    {
+                        games.Add(new Game { PlayerWhite = black, PlayerBlack = white, PlayerWhiteId = black.Id, PlayerBlackId = white.Id , TournamentId=tournamentId});
+                    }
+                    else
+                    {
+                        games.Add(new Game { PlayerWhite = white, PlayerBlack = black, PlayerWhiteId = white.Id, PlayerBlackId = black.Id, TournamentId = tournamentId });
+                    }
+                }
+            }
+
+            players.Insert(1, players[players.Count - 1]);
+            players.RemoveAt(players.Count - 1);
+        }
+
+        games = BalanceColors(games, players);
+        games = AssignDates(DateOnly.FromDateTime(DateTime.Now), games, players);
+        foreach(var game in games)
+        {
+            _context.Games.Add(game);
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    private List<Game> BalanceColors(List<Game> games, List<Player> players)
+    {
+        Dictionary<int, int> colorBalance = new Dictionary<int, int>();
+
+        foreach (var player in players)
+        {
+            colorBalance[player.Id] = 0;
+        }
+
+        foreach (var game in games)
+        {
+            colorBalance[game.PlayerWhiteId]++;
+            colorBalance[game.PlayerBlackId]--;
+        }
+
+        for (int i = 0; i < games.Count; i++)
+        {
+            var game = games[i];
+            if (colorBalance[game.PlayerWhiteId] > colorBalance[game.PlayerBlackId])
+            {
+                games[i] = new Game
+                {
+                    PlayerWhite = game.PlayerBlack,
+                    PlayerBlack = game.PlayerWhite,
+                    PlayerWhiteId = game.PlayerBlackId,
+                    PlayerBlackId = game.PlayerWhiteId,
+                    TournamentId = game.TournamentId
+                };
+                colorBalance[game.PlayerWhiteId] -= 2;
+                colorBalance[game.PlayerBlackId] += 2;
+            }
+        }
+        return games;
+    }
+    public List<Game> AssignDates(DateOnly startDate, List<Game> games, List<Player> players)
+    {
+        Dictionary<int, DateOnly> playerLastGameDate = new Dictionary<int, DateOnly>();
+        foreach (var player in players)
+        {
+            playerLastGameDate[player.Id] = startDate.AddDays(-14); // Initialize to day before start
+        }
+
+        foreach (var game in games)
+        {
+            DateOnly gameDate = playerLastGameDate[game.PlayerWhiteId].AddDays(14);
+            if (gameDate <= playerLastGameDate[game.PlayerBlackId])
+            {
+                gameDate = playerLastGameDate[game.PlayerBlackId].AddDays(14);
+            }
+
+            game.Date = gameDate;
+            playerLastGameDate[game.PlayerWhiteId] = gameDate;
+            playerLastGameDate[game.PlayerBlackId] = gameDate;
+        }
+        return games;
+    }
+
 }
 

@@ -1,4 +1,6 @@
 ﻿@page "/impressum"
+@inject IKeyValueService KeyValueService
+@using InntalerSchachfreunde.Services
 @using Microsoft.AspNetCore.Components
 
 <h3>Impressum</h3>
@@ -6,13 +8,13 @@
 <div class="impressum">
     <p>
         <strong>
-            Inntaler Schachfreunde e.V.
+            @Name
         </strong> 
     </p>
-    <p><strong>83098 Brannenburg, Germany</strong></p>
-    <p><strong>Vertreten durch: Hanfried Pannen (1. Vorstand) & Georg Reim (2. Vorstand)</strong></p>
-    <p><strong>Verantwortlich für diese Website: Liebing, Maximilian</strong></p>
-    <p><strong>Spielberichte und Pressemitteilungen: Dieter Schönleben (Jugendleiter)</strong></p>
+    <p><strong>@ImpressumAdresse</strong></p>
+    <p><strong>@ImpressumVerantwortlichWebsite</strong></p>
+    <p><strong>@ImpressumVertretenDurch</strong></p>
+    <p><strong>@ImpressumPresse</strong></p>
 
 </div>
 
@@ -27,3 +29,30 @@
             margin: 5px 0;
         }
 </style>
+@code{
+    private string? Name;
+    private string? ImpressumAdresse;
+    private string? ImpressumVerantwortlichWebsite;
+    private string? ImpressumVertretenDurch;
+    private string? ImpressumPresse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Name = await GetKeyValue("Name");
+        ImpressumAdresse = await GetKeyValue("ImpressumAdresse");
+        ImpressumVerantwortlichWebsite = await GetKeyValue("ImpressumVerantwortlichWebsite");
+        ImpressumVertretenDurch = await GetKeyValue("ImpressumVertretenDurch");
+        ImpressumPresse = await GetKeyValue("ImpressumPresse");
+    }
+    private async Task<string?> GetKeyValue(string key)
+    {
+        try
+        {
+            return await KeyValueService.GetValue(key);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+}

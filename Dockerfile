@@ -18,6 +18,13 @@ WORKDIR /app
 # Copy the build output from the SDK image
 COPY --from=build /app .
 
+# Copy SSL certificate
+COPY server.pfx /https/cert.pfx
+
+# Set environment variables for the certificate
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=k55ijW0sjfgdh
+
 # Ensure the entry point script has the correct permissions
 RUN chmod +x /app
 

@@ -113,7 +113,16 @@
                 }
             }
         }
-
+        try
+        {
+            await tournamentService.GenerateRoundRobinSchedule(tournament.Id);
+        }
+        catch (Exception e)
+        {
+            errorMessage = "Fehler beim Anlegen des Spielplans";
+            return;
+        }
+        
         errorMessage = "Turnier erfolgreich angelegt";
         return;
     }

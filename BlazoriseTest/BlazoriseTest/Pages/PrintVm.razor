@@ -64,6 +64,6 @@
         currentTournamentName = await tournamentService.GetCurrentTournamentName();
         crossTable = await tournamentService.GetCrossTableOfTournament(currentTournamentName);
         StateHasChanged();
-        JS.InvokeVoidAsync("print");
+        await JS.InvokeVoidAsync("print");
     }
 }
